@@ -1,8 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// Database settings from Render environment variables
-define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+require_once __DIR__ . '/../config/config.php';
 
 function db(): PDO
 {
