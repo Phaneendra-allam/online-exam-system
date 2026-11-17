@@ -1,4 +1,3 @@
-
 <?php
 declare(strict_types=1);
 
@@ -15,11 +14,16 @@ define('DB_SSL_CA', getenv('DB_SSL_CA') ?: '');
 define('APP_NAME', 'Online Exam System');
 define('APP_TAGLINE', 'A modern, secure platform for college quizzes & exams');
 define('APP_TIMEZONE', 'Asia/Kolkata');
-define('APP_DEBUG', filter_var(getenv('APP_DEBUG') ?: 'false', FILTER_VALIDATE_BOOLEAN));
+
+define(
+    'APP_DEBUG',
+    filter_var(getenv('APP_DEBUG') ?: 'false', FILTER_VALIDATE_BOOLEAN)
+);
+
 define('SESSION_NAME', 'oes_session');
 define('SESSION_LIFETIME', 60 * 60 * 4);
 
-// Security
+// Security settings
 define('PASSWORD_ALGO', PASSWORD_BCRYPT);
 define('CSRF_TOKEN_KEY', 'csrf_token');
 
