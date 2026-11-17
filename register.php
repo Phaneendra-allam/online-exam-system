@@ -5,8 +5,7 @@ require_once __DIR__ . '/includes/functions.php';
 if (current_user()) redirect('dashboard.php');
 
 $errors = [];
-$old = ['name' => '', 'email' => '', 'college' => '', 'mobile' => '', 'gender' => 'M'];
-
+$old = ['name' => '', 'email' => '', 'college' => '', 'mobile' => '', 'gender' => 'M', 'class_level' => ''];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -15,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $old['college'] = clean_string($_POST['college'] ?? '', 120);
     $old['mobile']  = clean_string($_POST['mobile'] ?? '', 20);
     $old['gender']  = in_array($_POST['gender'] ?? '', ['M','F','O'], true) ? $_POST['gender'] : 'O';
+    $old['class_level'] = (string) ($_POST['class_level'] ?? '');
     $password       = (string) ($_POST['password'] ?? '');
     $confirm        = (string) ($_POST['confirm'] ?? '');
 
