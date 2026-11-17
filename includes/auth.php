@@ -1,24 +1,36 @@
+
 <?php
 /**
- * Session, CSRF and auth helpers.
+ * Session, CSRF and authentication helpers.
  */
 declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 
+/**
+ * Start a secure session and initialize CSRF token.
+ */
 function start_session(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
         return;
     }
+
+    $isHttps = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    );
+
     session_name(SESSION_NAME);
+
     session_set_cookie_params([
         'lifetime' => SESSION_LIFETIME,
         'path'     => '/',
         'httponly' => true,
         'samesite' => 'Lax',
-        'secure'   => !empty($_SERVER['HTTPS']),
+        'secure'   => $isHttps,
     ]);
+
     session_start();
 
     if (!isset($_SESSION[CSRF_TOKEN_KEY])) {
@@ -26,69 +38,101 @@ function start_session(): void
     }
 }
 
+/**
+ * Generate CSRF token.
+ */
 function csrf_token(): string
 {
     start_session();
+
     return $_SESSION[CSRF_TOKEN_KEY];
 }
 
+/**
+ * Generate hidden CSRF input field.
+ */
 function csrf_field(): string
 {
-    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES) . '">';
+    return '<input type="hidden" name="csrf_token" value="' .
+        htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') .
+        '">';
 }
 
+/**
+ * Verify submitted CSRF token.
+ */
 function verify_csrf(): void
 {
     start_session();
+
     $token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? '';
-    if (!is_string($token) || !hash_equals($_SESSION[CSRF_TOKEN_KEY] ?? '', $token)) {
+
+    if (
+        !is_string($token) ||
+        !hash_equals($_SESSION[CSRF_TOKEN_KEY] ?? '', $token)
+    ) {
         http_response_code(419);
         die('Invalid or expired CSRF token. Please go back and try again.');
     }
 }
 
-// ---------- User auth ----------
+// ---------- User authentication ----------
+
 function current_user(): ?array
 {
     start_session();
+
     if (empty($_SESSION['user_id'])) {
         return null;
     }
+
     try {
-        $stmt = db()->prepare('SELECT id, name, email, gender, college, mobile, role, created_at FROM users WHERE id = ? LIMIT 1');
+        $stmt = db()->prepare(
+            'SELECT id, name, email, gender, college, mobile, role, created_at
+             FROM users WHERE id = ? LIMIT 1'
+        );
+
         $stmt->execute([$_SESSION['user_id']]);
-        $u = $stmt->fetch();
-        return $u ?: null;
+
+        $user = $stmt->fetch();
+
+        return $user ?: null;
+
     } catch (Throwable $e) {
-        // DB not ready (e.g. running install.php on a fresh setup). Treat as logged out.
         return null;
     }
 }
 
 function require_login(string $redirect = 'login.php'): array
 {
-    $u = current_user();
-    if (!$u) {
+    $user = current_user();
+
+    if (!$user) {
         header('Location: ' . base_url($redirect));
         exit;
     }
-    return $u;
+
+    return $user;
 }
 
 function require_admin(string $redirect = 'admin/login.php'): array
 {
-    $u = require_login($redirect);
-    if (($u['role'] ?? '') !== 'admin') {
+    $user = require_login($redirect);
+
+    if (($user['role'] ?? '') !== 'admin') {
         header('Location: ' . base_url($redirect));
         exit;
     }
-    return $u;
+
+    return $user;
 }
 
 function login_user(int $userId): void
 {
     start_session();
+
     session_regenerate_id(true);
+
     $_SESSION['user_id'] = $userId;
     $_SESSION[CSRF_TOKEN_KEY] = bin2hex(random_bytes(32));
 }
@@ -96,24 +140,43 @@ function login_user(int $userId): void
 function logout_user(): void
 {
     start_session();
+
     $_SESSION = [];
+
     if (ini_get('session.use_cookies')) {
-        $p = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        $params = session_get_cookie_params();
+
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params['path'],
+            $params['domain'],
+            $params['secure'],
+            $params['httponly']
+        );
     }
+
     session_destroy();
 }
 
-// ---------- Helpers ----------
+// ---------- Helper functions ----------
+
 function base_url(string $path = ''): string
 {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $script = $_SERVER['SCRIPT_NAME'] ?? '';
-    $base   = rtrim(str_replace('\\', '/', dirname($script)), '/');
+    $scheme = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    ) ? 'https' : 'http';
 
-    // Always normalize $base to the project root so callers can pass paths
-    // like "admin/dashboard.php" from anywhere without doubling the prefix.
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $script = $_SERVER['SCRIPT_NAME'] ?? '';
+
+    $base = rtrim(
+        str_replace('\\', '/', dirname($script)),
+        '/'
+    );
+
     if (str_ends_with($base, '/admin')) {
         $base = substr($base, 0, -6);
     }
@@ -129,15 +192,19 @@ function e(?string $s): string
 function flash(string $key, ?string $value = null): ?string
 {
     start_session();
+
     if ($value !== null) {
         $_SESSION['_flash'][$key] = $value;
         return null;
     }
-    $v = $_SESSION['_flash'][$key] ?? null;
-    if ($v !== null) {
+
+    $value = $_SESSION['_flash'][$key] ?? null;
+
+    if ($value !== null) {
         unset($_SESSION['_flash'][$key]);
     }
-    return $v;
+
+    return $value;
 }
 
 function redirect(string $path): void
