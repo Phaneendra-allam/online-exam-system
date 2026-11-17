@@ -77,8 +77,21 @@ include __DIR__ . '/includes/header.php';
               <label class="form-label">Mobile</label>
               <input type="text" name="mobile" class="form-control" value="<?= e($old['mobile']) ?>" placeholder="Optional">
             </div>
-            <div class="col-md-4">
-              <label class="form-label">Gender</label>
+<div class="col-md-4">
+  <label class="form-label">Class</label>
+  <select name="class_level" class="form-select" required>
+    <option value="">Select Class</option>
+    <option value="6">Class 6</option>
+    <option value="7">Class 7</option>
+    <option value="8">Class 8</option>
+    <option value="9">Class 9</option>
+    <option value="10">Class 10</option>
+  </select>
+</div>
+
+<div class="col-md-4">
+  <label class="form-label">Gender</label>
+              
               <select name="gender" class="form-select">
                 <option value="M" <?= $old['gender']==='M'?'selected':'' ?>>Male</option>
                 <option value="F" <?= $old['gender']==='F'?'selected':'' ?>>Female</option>
