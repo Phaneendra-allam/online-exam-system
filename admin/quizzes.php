@@ -20,9 +20,15 @@ if ($action === 'new' || $action === 'edit') {
     }
 
     $vals = $editing ?: [
-        'title' => '', 'tag' => '', 'intro' => '',
-        'duration_minutes' => 5, 'passing_percent' => 50, 'is_published' => 1,
-    ];
+    'title' => '',
+    'tag' => '',
+    'intro' => '',
+    'class_level' => '',
+    'paper_set' => '',
+    'duration_minutes' => 30,
+    'passing_percent' => 50,
+    'is_published' => 1,
+];
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verify_csrf();
