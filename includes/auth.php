@@ -87,8 +87,8 @@ function current_user(): ?array
 
     try {
         $stmt = db()->prepare(
-            'SELECT id, name, email, gender, college, mobile, role, created_at
-             FROM users WHERE id = ? LIMIT 1'
+            'SELECT id, name, email, gender, college, mobile, class_level, role, created_at
+FROM users WHERE id = ? LIMIT 1'
         );
 
         $stmt->execute([$_SESSION['user_id']]);
