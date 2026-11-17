@@ -20,6 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (mb_strlen($old['name']) < 2)         $errors[] = 'Name must be at least 2 characters.';
     if (!validate_email($old['email']))      $errors[] = 'Please enter a valid email.';
+    if (!in_array($old['class_level'], ['6','7','8','9','10'], true)) {
+    $errors[] = 'Please select your class.';
+}
     if (strlen($password) < 6)               $errors[] = 'Password must be at least 6 characters.';
     if ($password !== $confirm)              $errors[] = 'Passwords do not match.';
     if ($old['mobile'] !== '' && !preg_match('/^[0-9 +()-]{6,20}$/', $old['mobile'])) {
