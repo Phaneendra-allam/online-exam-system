@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Session, CSRF and authentication helpers.
