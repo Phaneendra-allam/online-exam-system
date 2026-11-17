@@ -1,38 +1,27 @@
-<?php
-/**
- * Online Exam System – Application config.
- *
- * Copy this file to config.local.php to override per-environment.
- * Anything in config.local.php is gitignored.
- */
 
+<?php
 declare(strict_types=1);
 
-// ---------- Database ----------
-const DB_HOST = '127.0.0.1';
-const DB_PORT = 3306;
-const DB_NAME = 'online_exam_system';
-const DB_USER = 'root';
-const DB_PASS = '';
-const DB_CHARSET = 'utf8mb4';
+// Database settings from Render environment variables
+define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
+define('DB_NAME', getenv('DB_NAME') ?: 'online_exam_system');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_CHARSET', 'utf8mb4');
+define('DB_SSL_CA', getenv('DB_SSL_CA') ?: '');
 
-// ---------- Application ----------
-const APP_NAME       = 'Online Exam System';
-const APP_TAGLINE    = 'A modern, secure platform for college quizzes & exams';
-const APP_TIMEZONE   = 'Asia/Kolkata';
-const APP_DEBUG      = true; // set false in production
-const SESSION_NAME   = 'oes_session';
-const SESSION_LIFETIME = 60 * 60 * 4; // 4 hours
+// Application settings
+define('APP_NAME', 'Online Exam System');
+define('APP_TAGLINE', 'A modern, secure platform for college quizzes & exams');
+define('APP_TIMEZONE', 'Asia/Kolkata');
+define('APP_DEBUG', filter_var(getenv('APP_DEBUG') ?: 'false', FILTER_VALIDATE_BOOLEAN));
+define('SESSION_NAME', 'oes_session');
+define('SESSION_LIFETIME', 60 * 60 * 4);
 
-// ---------- Security ----------
-const PASSWORD_ALGO  = PASSWORD_BCRYPT;
-const CSRF_TOKEN_KEY = 'csrf_token';
-
-// Pull local overrides if present
-$local = __DIR__ . '/config.local.php';
-if (is_file($local)) {
-    require_once $local;
-}
+// Security
+define('PASSWORD_ALGO', PASSWORD_BCRYPT);
+define('CSRF_TOKEN_KEY', 'csrf_token');
 
 date_default_timezone_set(APP_TIMEZONE);
 
