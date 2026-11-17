@@ -28,7 +28,6 @@ function db(): PDO
             "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
     ];
 
-    // Enable secure TLS connection to TiDB when a CA certificate is configured.
     if (DB_SSL_CA !== '') {
         $options[PDO::MYSQL_ATTR_SSL_CA] = DB_SSL_CA;
         $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
@@ -38,7 +37,6 @@ function db(): PDO
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
     } catch (PDOException $e) {
         error_log('Database connection error: ' . $e->getMessage());
-
         http_response_code(500);
 
         if (APP_DEBUG) {
